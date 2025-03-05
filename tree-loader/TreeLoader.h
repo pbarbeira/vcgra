@@ -7,9 +7,16 @@
 
 #include "Node.h"
 
+template<typename T>
 class TreeLoader {
     public:
-      std::unique_ptr<Node> loadTree(std::string treeStr);
+      virtual Node<T> loadTree(std::string filepath) = 0;
+};
+
+template<typename T>
+class DotTreeLoader : TreeLoader<T>{
+    public:
+        Node<T> loadTree(std::string filepath) override;
 };
 
 

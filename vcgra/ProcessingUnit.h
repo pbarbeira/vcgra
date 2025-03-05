@@ -8,31 +8,32 @@
 #include <memory>
 #include <functional>
 #include "Instance.h"
+#include "../tree-loader/Node.h"
 
 using ull = unsigned long long;
 
+template<typename T>
 class ProcessingUnit;
 
 enum PEDirection{
     UP = 0, DOWN = 1, LEFT = 2, RIGHT = 3
 };
 
+template<typename T>
 class ProcessingUnit {
     private:
         ull _id;
-        std::shared_ptr<ProcessingUnit> _neighbors[4];
+        std::shared_ptr<ProcessingUnit<T>> _neighbors[4];
 
-        std::function<int(const Instance&)> _functionalUnit;
+        std::function<int(const Instance<T>&)> _functionalUnit;
     public:
-        explicit ProcessingUnit();
+        explicit ProcessingUnit(){} 
+        
+        void activate(const Node<T>& node);        
 
-        template<typename T>
-        explicit ProcessingUnit(ull id, std::function<int(Instance)> functionalUnit)
-            :_id(id), _functionalUnit(functionalUnit) {};
+        bool setNeighbor(PEDirection direction, std::shared_ptr<ProcessingUnit<T>> neighbor);
 
-        bool setNeighbor(PEDirection direction, std::shared_ptr<ProcessingUnit> neighbor);
-
-        int classify(const Instance& instance);
+        int classify(const Instance<T>& instance);
 };
 
 

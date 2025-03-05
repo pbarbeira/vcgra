@@ -9,39 +9,26 @@
 
 #define TRAINING_INSTANCE -1
 
+template<typename T>
 struct Instance {
-  short class_id;
+  short classId;
+    std::vector<T> features;
 
   Instance():
-    class_id(TRAINING_INSTANCE){}
+    classId(TRAINING_INSTANCE){}
 
-  Instance(short class_id):
-    class_id(class_id){}
+    Instance(std::vector<T> features):
+        classId(TRAINING_INSTANCE), features(features){}
+
+  Instance(short classIdd):
+    classId(classId){}
+
+  Instance(short classId, std::vector<T> features):
+      classId(classId), features(features){};
 
   bool isTrainingInstance() const {
-    return class_id == TRAINING_INSTANCE;
+    return classId == TRAINING_INSTANCE;
   }
 };
-
-struct IntInstance : public Instance {
-  std::vector<int> features;
-
-  IntInstance(std::vector<int> features):
-    Instance(), features(features){}
-
-  IntInstance(short class_id, std::vector<int> features):
-    Instance(class_id), features(features){}
-};
-
-struct DoubleInstance : public Instance {
-  std::vector<double> features;
-
-  DoubleInstance(std::vector<double> features):
-    Instance(), features(features){}
-
-  DoubleInstance(short class_id, std::vector<double> features):
-    Instance(class_id), features(features){}
-};
-
 
 #endif //INSTANCE_H

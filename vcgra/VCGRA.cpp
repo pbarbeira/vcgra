@@ -3,3 +3,8 @@
 //
 
 #include "VCGRA.h"
+
+template<typename T>
+void VCGRA<T>::loadTree(const Node<T>& root){
+
+}

@@ -5,31 +5,41 @@
 #ifndef NODE_H
 #define NODE_H
 
-#include "../vcgra/ProcessingUnit.h"
 #include <memory>
+#include <utility>
 
-class Node;
+#define LEAF_ATTRIBUTE -1
 
+using ull = unsigned long long;
+
+template<typename T>
+struct Node;
+
+template<typename T>
 struct Node {
-      std::unique_ptr<Node> left;
-      std::unique_ptr<Node> right;
+      std::unique_ptr<Node<T>> left;
+      std::unique_ptr<Node<T>> right;
 
-      virtual std::shared_ptr<ProcessingUnit> BuildProcessingUnit() = 0;
+      virtual std::pair<T, T> getData() const = 0;
 };
 
-struct SplitNode : public Node {
-      int splitAttribute;
-      int splitValue;
+template<typename T>
+struct SplitNode : public Node<T> {
+      T splitAttribute;
+      T splitValue;
 
-      std::shared_ptr<ProcessingUnit> BuildProcessingUnit() override;
+      std::pair<T, T> getData() const {
+        return std::make_pair<T, T>(splitAttribute, splitValue); 
+      }
 };
 
-struct LeafNode : public Node {
-      int value;
+template<typename T>
+struct LeafNode : public Node<T> {
+      T value;
 
-      std::shared_ptr<ProcessingUnit> BuildProcessingUnit() override;
+      std::pair<T, T> getData() const {
+        return std::make_pair<T, T>(LEAF_ATTRIBUTE, value); 
+      }
 };
-
-
 
 #endif //NODE_H
