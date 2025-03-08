@@ -8,7 +8,7 @@
 #include <memory>
 #include <utility>
 
-#define LEAF_ATTRIBUTE -1
+#define LEAF_ATTRIBUTE (-1)
 
 using ull = unsigned long long;
 
@@ -17,29 +17,42 @@ struct Node;
 
 template<typename T>
 struct Node {
-      std::unique_ptr<Node<T>> left;
-      std::unique_ptr<Node<T>> right;
+    ull id{};
 
-      virtual std::pair<T, T> getData() const = 0;
+    std::unique_ptr<Node> left;
+    std::unique_ptr<Node> right;
+
+    explicit Node(const ull id):
+        id(id){};
+
+    [[nodiscard]] virtual std::pair<int, T> getData() const = 0;
+
+    virtual ~Node() = default;
 };
 
 template<typename T>
-struct SplitNode : public Node<T> {
-      T splitAttribute;
-      T splitValue;
+struct SplitNode final : Node<T> {
+    int splitAttribute;
+    T splitValue;
 
-      std::pair<T, T> getData() const {
-        return std::make_pair<T, T>(splitAttribute, splitValue); 
-      }
+    explicit SplitNode(const ull id, int splitAttribute, T splitValue):
+        Node<T>(id), splitAttribute(splitAttribute), splitValue(splitValue){};
+
+    std::pair<int, T> getData() const override {
+        return std::make_pair(splitAttribute, splitValue);
+    }
 };
 
 template<typename T>
-struct LeafNode : public Node<T> {
-      T value;
+struct LeafNode final : Node<T> {
+    int classId;
 
-      std::pair<T, T> getData() const {
-        return std::make_pair<T, T>(LEAF_ATTRIBUTE, value); 
-      }
+    explicit LeafNode(const ull id, const int classId):
+        Node<T>(id), classId(classId){};
+
+    [[nodiscard]] std::pair<int, int> getData() const override {
+        return std::make_pair(LEAF_ATTRIBUTE, classId);
+    }
 };
 
 #endif //NODE_H

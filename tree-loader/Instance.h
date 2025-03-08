@@ -7,26 +7,26 @@
 
 #include <vector>
 
-#define TRAINING_INSTANCE -1
+#define TRAINING_INSTANCE (-1)
 
 template<typename T>
 struct Instance {
   short classId;
-    std::vector<T> features;
+  std::vector<T> features;
 
   Instance():
     classId(TRAINING_INSTANCE){}
 
-    Instance(std::vector<T> features):
-        classId(TRAINING_INSTANCE), features(features){}
+  explicit Instance(std::vector<T> features):
+    classId(TRAINING_INSTANCE), features(features){}
 
-  Instance(short classIdd):
+  explicit Instance(short classId):
     classId(classId){}
 
   Instance(short classId, std::vector<T> features):
       classId(classId), features(features){};
 
-  bool isTrainingInstance() const {
+  [[nodiscard]] bool isTrainingInstance() const {
     return classId == TRAINING_INSTANCE;
   }
 };

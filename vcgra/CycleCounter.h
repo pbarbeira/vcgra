@@ -18,14 +18,18 @@ class CycleCounter{
             _totalCycles = 0;
         }
 
-        void count(std::string op){
-            if(_opCycles.find(op) != _opCycles.end()){
+        void count(const std::string& op){
+            if(_opCycles.contains(op)){
                 _totalCycles += _opCycles[op];
             }
         }
 
         ull getCycles() const{
             return _totalCycles;
+        }
+
+        void reset() {
+            _totalCycles = 0;
         }
 };
 

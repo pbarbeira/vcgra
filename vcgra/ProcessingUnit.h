@@ -7,7 +7,8 @@
 
 #include <memory>
 #include <functional>
-#include "Instance.h"
+#include <utility>
+#include "../tree-loader/Instance.h"
 #include "../tree-loader/Node.h"
 
 using ull = unsigned long long;
@@ -21,19 +22,54 @@ enum PEDirection{
 
 template<typename T>
 class ProcessingUnit {
-    private:
-        ull _id;
+        ull _id = -1;
+        std::shared_ptr<CycleCounter> _cycleCounter;
         std::shared_ptr<ProcessingUnit<T>> _neighbors[4];
 
         std::function<int(const Instance<T>&)> _functionalUnit;
     public:
-        explicit ProcessingUnit(){} 
-        
-        void activate(const Node<T>& node);        
+        explicit ProcessingUnit() = default;
 
-        bool setNeighbor(PEDirection direction, std::shared_ptr<ProcessingUnit<T>> neighbor);
+        explicit ProcessingUnit(std::shared_ptr<CycleCounter> cycleCounter):
+            _cycleCounter(std::move(cycleCounter)){};
 
-        int classify(const Instance<T>& instance);
+        void activate(std::unique_ptr<Node<T>> node){
+            this->_id = node->id;
+
+            auto data = node->getData();
+
+            if(data.first == LEAF_ATTRIBUTE){
+                this->_functionalUnit = [data](const Instance<T>& instance) -> int {
+                    return data.second;
+                };
+                return;
+            };
+
+            this->_neighbors[LEFT] = std::make_unique<ProcessingUnit<T>>(this->_cycleCounter);
+            this->_neighbors[LEFT]->activate(std::move(node->left));
+            this->_neighbors[RIGHT] = std::make_unique<ProcessingUnit<T>>(this->_cycleCounter);
+            this->_neighbors[RIGHT]->activate(std::move(node->right));
+
+            this->_functionalUnit = [this, data](const Instance<T>& instance) -> int {
+                T value = instance.features[data.first];
+                return value < data.second ?
+                    this->_neighbors[LEFT]->classify(instance) :
+                    this->_neighbors[RIGHT]->classify(instance);
+            };
+        }
+
+        bool setNeighbor(PEDirection direction, std::shared_ptr<ProcessingUnit<T>> neighbor){
+            if(this->_neighbors[direction] == nullptr){
+                this->_neighbors[direction] = neighbor;
+                return true;
+            }
+            return false;
+        }
+
+        int classify(const Instance<T>& instance){
+            this->_cycleCounter->count("infer");
+            return this->_functionalUnit(instance);
+        }
 };
 
 

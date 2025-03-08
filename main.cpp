@@ -2,31 +2,22 @@
 #include "vcgra/CycleCounter.h"
 #include <vector>
 #include "tree-loader/Node.h"
+#include "tree-loader/TreeLoader.h"
 #include "vcgra/ProcessingUnit.h"
 
 int main() {
-    auto root = sd::make_unique<SplitNode<int>>();
-    root->splitAttribute = 0;
-    root->splitValue = 5;
+    auto loader = DotTreeLoader<int>();
+    auto root = loader.loadTree("/home/pbarbeira/masters/dissertation/vcgra/trees/tree.dot");
 
-    auto left = std::make_unique<SplitNode<int>>();
-    left->splitAttribute = 1; 
-    left->splitValue = 3;
+    if (root == nullptr) {
+        std::cerr << "Failed to load tree" << std::endl;
+        return 1;
+    }
 
-    auto leaf1 = std::make_unique<LeafNode<int>>();
-    leaf1->value = 1;
-    auto leaf2 = std::make_unique<LeafNode<int>>();
-    leaf2->value = 2;
-    auto leaf3 = std::make_unique<LeafNode<int>>();
-    leaf3->value = 3;
+    auto cycleCounter = std::make_shared<CycleCounter>();
 
-    left->left = leaf1;
-    left->right = leaf2;
-    root->left = left;
-    root->right = leaf3;
-
-    auto pe = ProcessingUnit<int>();
-    pe.activate(root);
+    auto pe = ProcessingUnit<int>(cycleCounter);
+    pe.activate(std::move(root));
 
     std::vector<int> v1 = { 1, 2, 3, 4 };
     std::vector<int> v2 = { 1, 3, 3, 4 };
@@ -36,9 +27,20 @@ int main() {
     auto inst2 = Instance(v2);
     auto inst3 = Instance(v3);
 
-    std::cout << "V1: " << pe.classify(v1)  
-            << "\nV2: " << pe.classify(v2) 
-            << "\nV3: " << pe.classify(v3) << std::endl;
+    auto r1 = pe.classify(inst1);
+    auto c1 = cycleCounter->getCycles();
+    cycleCounter->reset();
+    auto r2 = pe.classify(inst2);
+    auto c2 = cycleCounter->getCycles();
+    cycleCounter->reset();
+    auto r3 = pe.classify(inst3);
+    auto c3 = cycleCounter->getCycles();
+    cycleCounter->reset();
+
+    std::cout << "V1: " << r1 << "\tCycles: " << c1
+            << "\nV2: " << r2 << "\tCycles: " << c2
+            << "\nV3: " << r3 << "\tCycles: " << c3
+            << std::endl;
 
     return 0;
 }
