@@ -23,6 +23,7 @@ struct Instance {
   explicit Instance(short classId):
     classId(classId){}
 
+
   Instance(short classId, std::vector<T> features):
       classId(classId), features(features){};
 

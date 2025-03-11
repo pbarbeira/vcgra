@@ -6,7 +6,6 @@
 using ull = unsigned long long;
 
 class CycleCounter{
-    private:
         ull _totalCycles;
         std::unordered_map<std::string, int> _opCycles = {
             { "infer", 1 },

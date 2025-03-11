@@ -15,6 +15,7 @@ template<typename T>
 class VCGRA {
     private:
       	int size;
+        // TODO implement manual version of spatial mapping
 		std::unordered_map<ull, std::shared_ptr<ProcessingUnit<T>>> processingUnits;
     public:
 		VCGRA() : size(0) {};

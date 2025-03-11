@@ -24,7 +24,7 @@ template<typename T>
 class ProcessingUnit {
         ull _id = -1;
         std::shared_ptr<CycleCounter> _cycleCounter;
-        std::shared_ptr<ProcessingUnit<T>> _neighbors[4];
+        std::shared_ptr<ProcessingUnit> _neighbors[4];
 
         std::function<int(const Instance<T>&)> _functionalUnit;
     public:
@@ -45,9 +45,9 @@ class ProcessingUnit {
                 return;
             };
 
-            this->_neighbors[LEFT] = std::make_unique<ProcessingUnit<T>>(this->_cycleCounter);
+            this->_neighbors[LEFT] = std::make_unique<ProcessingUnit>(this->_cycleCounter);
             this->_neighbors[LEFT]->activate(std::move(node->left));
-            this->_neighbors[RIGHT] = std::make_unique<ProcessingUnit<T>>(this->_cycleCounter);
+            this->_neighbors[RIGHT] = std::make_unique<ProcessingUnit>(this->_cycleCounter);
             this->_neighbors[RIGHT]->activate(std::move(node->right));
 
             this->_functionalUnit = [this, data](const Instance<T>& instance) -> int {
