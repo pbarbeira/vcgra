@@ -8,19 +8,32 @@
 #include "../tree-loader/TreeLoader.h"
 #include <unordered_map>
 #include "ProcessingUnit.h"
+#include "MappingConfig.h"
+
+#define CONFIG_FILE "/home/pbarbeira/masters/dissertation/vcgra/node-mapping.json"
 
 using ull = unsigned long long;
 
 template<typename T>
 class VCGRA {
     private:
-      	int size;
-        // TODO implement manual version of spatial mapping
-		std::unordered_map<ull, std::shared_ptr<ProcessingUnit<T>>> processingUnits;
+        std::unique_ptr<MappingConfig> _config;
+		std::unordered_map<ull, std::shared_ptr<ProcessingUnit<T>>> _processingUnits;
+
+		std::weak_ptr<ProcessingUnit<T>> getProcessingUnit(ull id){
+			if(this->_processingUnits.contains(id)){
+				return this->_processingUnits.at(id);
+			}
+			return nullptr;
+		}
     public:
-		VCGRA() : size(0) {};
+		VCGRA(){
+            _config = std::move(MappingConfig::loadFromFile(CONFIG_FILE));
+		};
             
-		void loadTree(const Node<T>& root);
+		static VCGRA buildHoeffdingTree(){
+			                  
+		}
 };
 
 

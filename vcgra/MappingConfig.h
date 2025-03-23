@@ -31,14 +31,14 @@ struct MappingConfig {
             while(std::getline(file, line)){
                 ss << line;
             }
-            return std::move(JsonParser::parseJson<std::unique_ptr<MappingConfig>>(ss.str()));
+            return std::move(JsonParser::parse<std::unique_ptr<MappingConfig>>(ss.str()));
         }
 };
 
 template<>
-inline std::unique_ptr<NodeMapping> JsonObject::toObject<std::unique_ptr<NodeMapping>>() const{
-    std::string xPosStr = this->getChild("xPos")->_value;
-    std::string yPosStr = this->getChild("yPos")->_value;
+inline std::unique_ptr<NodeMapping> JsonNode::toObject<std::unique_ptr<NodeMapping>>(){
+    std::string xPosStr = this->getChild("xPos")->value;
+    std::string yPosStr = this->getChild("yPos")->value;
 
     auto nodeMapping = std::make_unique<NodeMapping>();
     nodeMapping->xPos = std::stoi(xPosStr);
@@ -48,20 +48,20 @@ inline std::unique_ptr<NodeMapping> JsonObject::toObject<std::unique_ptr<NodeMap
 }
 
 template<>
-inline std::unique_ptr<MappingConfig> JsonObject::toObject<std::unique_ptr<MappingConfig>>() const{
+inline std::unique_ptr<MappingConfig> JsonNode::toObject<std::unique_ptr<MappingConfig>>(){
     auto config = std::make_unique<MappingConfig>();
 
     auto gridNPtr = this->getChild("N");
-    config->N = std::stoi(gridNPtr->_value);
+    config->N = std::stoi(gridNPtr->value);
 
     auto gridMPtr = this->getChild("M");
-    config->M = std::stoi(gridMPtr->_value);
+    config->M = std::stoi(gridMPtr->value);
 
     auto nodes = this->getChild("nodes");
     for (const auto& node : nodes->_children) {
-        std::string keyStr = node.first;
-        ull key = keyStr == "entryNode"? ENTRY_NODE : std::stoull(node.first);
-        auto nodeMapping = node.second->toObject<std::unique_ptr<NodeMapping>>();
+        std::string keyStr = node->key;
+        ull key = keyStr == "entryNode"? ENTRY_NODE : std::stoull(node->key);
+        auto nodeMapping = node->toObject<std::unique_ptr<NodeMapping>>();
         config->_nodeMap[key] = std::move(nodeMapping);
     }
 

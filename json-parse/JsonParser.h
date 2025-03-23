@@ -5,83 +5,82 @@
 #ifndef JSONPARSER_H
 #define JSONPARSER_H
 
-#include "JsonObject.h"
-#include <iostream>
 #include <string>
-#include <stack>
-#include <sstream>
+#include "JsonNode.h"
+#include "Lexer.h"
 
-class JsonParser{
-    private:
-        static std::string _removeWhitespace(const std::string& s){
-            std::stringstream ss;
-            for(int i = 0; i < s.size(); i++){
-                if(!std::isspace(s[i])){
-                    ss << s[i];
+class JsonParser {
+        static std::unique_ptr<JsonNode> _parseObject(){
+            auto objRoot = std::make_unique<JsonNode>();
+            do{
+                std::string key = _parseKey();
+                auto value = _parseValue();
+                if(!objRoot->addChild(key, std::move(value))){
+                    throw std::runtime_error("Duplicate key error");
                 }
-            }
-            return ss.str();
+                auto token = Lexer::nextToken();
+                if (token->type == RIGHT_CURLY) {
+                    break;
+                }
+                if (token->type != COMMA) {
+                    throw std::runtime_error("Invalid separator");
+                }
+            }while(Lexer::hasNextToken() && Lexer::peekNextToken()->type != RIGHT_CURLY);
+            return std::move(objRoot);
         }
 
-        static std::unique_ptr<JsonObject> _parseKeyValue(const std::string& jsonStr){
-            if (jsonStr[0] == '{') {
-                auto jsonObj = std::make_unique<JsonObject>("");
-                return _parseObject(jsonStr.substr(1, jsonStr.size() - 1), std::move(jsonObj));
+        static std::string _parseKey(){
+            auto token = Lexer::nextToken();
+            std::string key = token->value;
+            token = Lexer::nextToken();
+            if(token->type != COLON){
+                throw std::runtime_error("Error parsing key");
             }
-            return std::make_unique<JsonObject>(jsonStr);
+            return key;
         }
 
-        static std::unique_ptr<JsonObject> _parseObject(const std::string& jsonStr, std::unique_ptr<JsonObject> parent){
-            std::stack<std::string> stack;
-            std::stack<char> bracketStack;
-            int last = 0;
-            for(int i = 0; i < jsonStr.size(); i++){
-                if(jsonStr[i] == '{') {
-                    while (1) {
-                        if (jsonStr[i] == '{') {
-                            bracketStack.emplace(jsonStr[i]);
-                        }
-                        if (jsonStr[i] == '}') {
-                            bracketStack.pop();
-                        }
-                        if (bracketStack.empty()) {
-                            break;
-                        }
-                        i++;
-                    }
-                }
-                if(jsonStr[i] == ':'){
-                    std::string key = jsonStr.substr(last, i - last);
-                    stack.emplace(key);
-                    stack.emplace(":");
-                    last = i + 1;
-                }
-                if(jsonStr[i] == ',' || i == jsonStr.size() - 1){
-                    stack.pop();
-                    std::string key = stack.top();
-                    key = key.substr(1, key.size() - 2);
-                    stack.pop();
-                    std::string value = jsonStr.substr(last, i == jsonStr.size() - 1 ? i - last + 1 : i - last);
-                    auto jsonObj = _parseKeyValue(value);
-                    parent->addChild(key, std::move(jsonObj));
-                    last = i + 1;
-                }
+        static std::unique_ptr<JsonNode> _parseValue(){
+            auto token = Lexer::nextToken();
+            switch(token->type){
+                case LEFT_CURLY: return _parseObject();
+                case LEFT_SQUARE: return _parseList();
+                case STRING:
+                case NUMBER:
+                case TRUE:
+                case FALSE:
+                case NIL: return std::make_unique<JsonNode>(token->value);
+                default: throw std::runtime_error("Error parsing value");
             }
-            return std::move(parent);
+        }
+
+        static std::unique_ptr<JsonNode> _parseList(){
+            auto objRoot = std::make_unique<JsonNode>();
+            do {
+                auto item = _parseValue();
+                objRoot->addChild("", std::move(item));
+                auto token = Lexer::nextToken();
+                if (token->type == RIGHT_SQUARE) {
+                    break;
+                }
+                if (token->type != COMMA) {
+                    throw std::runtime_error("Invalid separator");
+                }
+            }while (Lexer::hasNextToken() && Lexer::peekNextToken()->type != RIGHT_SQUARE);
+            return std::move(objRoot);
         }
 
     public:
-    template<typename T>
-    static T parseJson(const std::string& jsonStr){
-        try{
-            auto root = std::make_unique<JsonObject>("");
-            auto cleanStr = _removeWhitespace(jsonStr);
-            return _parseObject(cleanStr.substr(1, cleanStr.size() - 2), std::move(root))->toObject<T>();
-        }catch(const std::exception& e){
-            std::cerr << "FATAL::" << e.what() << std::endl;
-            exit(1);
+        JsonParser();
+
+        template<typename T>
+        static T parse(const std::string& input){
+            Lexer::registerInput(input);
+            auto token = Lexer::nextToken();
+            if(token->type != LEFT_CURLY){
+                throw std::runtime_error("Invalid object structure");
+            }
+            return _parseObject()->toObject<T>();
         }
-    }
 };
 
 #endif //JSONPARSER_H

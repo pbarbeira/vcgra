@@ -16,24 +16,21 @@ using ull = unsigned long long;
 template<typename T>
 class ProcessingUnit;
 
-enum PEDirection{
-    UP = 0, DOWN = 1, LEFT = 2, RIGHT = 3
-};
-
 template<typename T>
 class ProcessingUnit {
         ull _id = -1;
-        std::shared_ptr<CycleCounter> _cycleCounter;
-        std::shared_ptr<ProcessingUnit> _neighbors[4];
+        std::weak_ptr<CycleCounter> _cycleCounter;
+        std::weak_ptr<ProcessingUnit> _left;
+        std::weak_ptr<ProcessingUnit> _right;
 
         std::function<int(const Instance<T>&)> _functionalUnit;
     public:
         explicit ProcessingUnit() = default;
 
-        explicit ProcessingUnit(std::shared_ptr<CycleCounter> cycleCounter):
-            _cycleCounter(std::move(cycleCounter)){};
+        explicit ProcessingUnit(const std::shared_ptr<CycleCounter>& cycleCounter):
+            _cycleCounter(cycleCounter){};
 
-        void activate(std::unique_ptr<Node<T>> node){
+        void activate(std::unique_ptr<Node<T>> node, std::function<ProcessingUnit(ull)> callback){
             this->_id = node->id;
 
             auto data = node->getData();
@@ -45,30 +42,26 @@ class ProcessingUnit {
                 return;
             };
 
-            this->_neighbors[LEFT] = std::make_unique<ProcessingUnit>(this->_cycleCounter);
-            this->_neighbors[LEFT]->activate(std::move(node->left));
-            this->_neighbors[RIGHT] = std::make_unique<ProcessingUnit>(this->_cycleCounter);
-            this->_neighbors[RIGHT]->activate(std::move(node->right));
+            this->_left = callback(node->left.id);
+            this->_left->activate(std::move(node->left), callback);
+            this->_right = callback(node->right.id);;
+            this->_right->activate(std::move(node->right), callback);
 
             this->_functionalUnit = [this, data](const Instance<T>& instance) -> int {
                 T value = instance.features[data.first];
                 return value < data.second ?
-                    this->_neighbors[LEFT]->classify(instance) :
-                    this->_neighbors[RIGHT]->classify(instance);
+                    this->_left->classify(instance) :
+                    this->_right->classify(instance);
             };
         }
 
-        bool setNeighbor(PEDirection direction, std::shared_ptr<ProcessingUnit<T>> neighbor){
-            if(this->_neighbors[direction] == nullptr){
-                this->_neighbors[direction] = neighbor;
-                return true;
-            }
-            return false;
-        }
-
         int classify(const Instance<T>& instance){
-            this->_cycleCounter->count("infer");
-            return this->_functionalUnit(instance);
+            auto p = this->_cycleCounter.lock();
+            if (p) {
+                p->count("infer");
+                return this->_functionalUnit(instance);
+            }
+            throw std::logic_error("Cycle counter expired");
         }
 };
 
