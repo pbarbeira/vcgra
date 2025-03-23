@@ -8,9 +8,6 @@
 #include "vcgra/MappingConfig.h"
 
 int main() {
-    auto parsed = MappingConfig::loadFromFile("/home/pbarbeira/masters/dissertation/vcgra/config/node-mapping.json");
-
-    std::cout << "here\n";
 
     // auto loader = DotTreeLoader<int>();
     // auto root = loader.loadTree("/home/pbarbeira/masters/dissertation/vcgra/trees/tree.dot");

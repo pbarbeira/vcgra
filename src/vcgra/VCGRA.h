@@ -10,7 +10,7 @@
 #include "ProcessingUnit.h"
 #include "MappingConfig.h"
 
-#define CONFIG_FILE "/home/pbarbeira/masters/dissertation/vcgra/node-mapping.json"
+#define CONFIG_FILE ""
 
 using ull = unsigned long long;
 
