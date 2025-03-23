@@ -20,4 +20,17 @@ add_executable(run_tests
 
 target_link_libraries(run_tests gtest gtest_main)
 
-add_executable(vcgra src/main.cpp)
+add_executable(vcgra src/main.cpp
+        src/vcgra/VCGRA.h
+        src/vcgra/CycleCounter.h
+        src/vcgra/VCGRAConfig.h
+        src/vcgra/ProcessingUnit.h
+        src/json-parse/JsonNode.h
+        src/json-parse/JsonParser.h
+        src/json-parse/Lexer.h
+        src/json-parse/Token.h
+        src/tree-loader/Instance.h
+        src/tree-loader/Node.h
+        src/tree-loader/TreeLoader.h
+        src/tree-loader/TypeConverter.h
+)

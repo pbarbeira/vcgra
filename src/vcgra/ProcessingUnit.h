@@ -20,8 +20,8 @@ template<typename T>
 class ProcessingUnit {
         ull _id = -1;
         std::weak_ptr<CycleCounter> _cycleCounter;
-        std::weak_ptr<ProcessingUnit> _left;
-        std::weak_ptr<ProcessingUnit> _right;
+        std::shared_ptr<ProcessingUnit> _left;
+        std::shared_ptr<ProcessingUnit> _right;
 
         std::function<int(const Instance<T>&)> _functionalUnit;
     public:
@@ -30,21 +30,22 @@ class ProcessingUnit {
         explicit ProcessingUnit(const std::shared_ptr<CycleCounter>& cycleCounter):
             _cycleCounter(cycleCounter){};
 
-        void activate(std::unique_ptr<Node<T>> node, std::function<ProcessingUnit(ull)> callback){
+        void activate(std::unique_ptr<Node<T>> node, std::function<std::shared_ptr<ProcessingUnit>(const ull&)> callback){
             this->_id = node->id;
 
             auto data = node->getData();
 
             if(data.first == LEAF_ATTRIBUTE){
-                this->_functionalUnit = [data](const Instance<T>& instance) -> int {
+                this->_functionalUnit = [data](const Instance<T>&) -> int {
                     return data.second;
                 };
                 return;
             };
 
-            this->_left = callback(node->left.id);
+            this->_left = callback(node->left->id);
             this->_left->activate(std::move(node->left), callback);
-            this->_right = callback(node->right.id);;
+
+            this->_right = callback(node->right->id);;
             this->_right->activate(std::move(node->right), callback);
 
             this->_functionalUnit = [this, data](const Instance<T>& instance) -> int {
@@ -56,8 +57,7 @@ class ProcessingUnit {
         }
 
         int classify(const Instance<T>& instance){
-            auto p = this->_cycleCounter.lock();
-            if (p) {
+            if (auto p = this->_cycleCounter.lock()) {
                 p->count("infer");
                 return this->_functionalUnit(instance);
             }

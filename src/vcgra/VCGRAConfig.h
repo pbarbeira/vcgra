@@ -19,19 +19,19 @@ struct NodeMapping{
     uint yPos;
 };
 
-struct MappingConfig {
+struct VCGRAConfig {
         uint N{};
 		uint M{};
-        std::unordered_map<ull, std::unique_ptr<NodeMapping>> _nodeMap;
+        std::unordered_map<ull, std::unique_ptr<NodeMapping>> nodeMap;
 
-        static std::unique_ptr<MappingConfig> loadFromFile(const std::string& filename) {
+        static std::unique_ptr<VCGRAConfig> loadFromFile(const std::string& filename) {
             std::stringstream ss;
             std::ifstream file(filename);
             std::string line;
             while(std::getline(file, line)){
                 ss << line;
             }
-            return std::move(JsonParser::parse<std::unique_ptr<MappingConfig>>(ss.str()));
+            return std::move(JsonParser::parse<std::unique_ptr<VCGRAConfig>>(ss.str()));
         }
 };
 
@@ -48,8 +48,8 @@ inline std::unique_ptr<NodeMapping> JsonNode::toObject<std::unique_ptr<NodeMappi
 }
 
 template<>
-inline std::unique_ptr<MappingConfig> JsonNode::toObject<std::unique_ptr<MappingConfig>>(){
-    auto config = std::make_unique<MappingConfig>();
+inline std::unique_ptr<VCGRAConfig> JsonNode::toObject<std::unique_ptr<VCGRAConfig>>(){
+    auto config = std::make_unique<VCGRAConfig>();
 
     auto gridNPtr = this->getChild("N");
     config->N = std::stoi(gridNPtr->value);
@@ -62,7 +62,7 @@ inline std::unique_ptr<MappingConfig> JsonNode::toObject<std::unique_ptr<Mapping
         std::string keyStr = node->key;
         ull key = keyStr == "entryNode"? ENTRY_NODE : std::stoull(node->key);
         auto nodeMapping = node->toObject<std::unique_ptr<NodeMapping>>();
-        config->_nodeMap[key] = std::move(nodeMapping);
+        config->nodeMap[key] = std::move(nodeMapping);
     }
 
     return std::move(config);

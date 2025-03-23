@@ -20,7 +20,7 @@ class TreeLoader {
 		std::unordered_map<ull, Node<T>*> _nodes;
 		std::unique_ptr<Node<T>> _root = nullptr;
 	public:
-		virtual std::unique_ptr<Node<T>> loadTree(std::string filepath) = 0 ;
+		virtual std::unique_ptr<Node<T>> loadTree(const std::string& filepath) = 0 ;
 
 		virtual ~TreeLoader() {
 			_nodes.clear();
@@ -28,7 +28,7 @@ class TreeLoader {
 };
 
 template<typename T>
-class DotTreeLoader : TreeLoader<T>{
+class DotTreeLoader : public TreeLoader<T>{
   	std::regex _nodePattern = std::regex(R"(\s*(\d+) \[label=\"(.*?)\"\];)");
 	std::regex _splitNodePattern = std::regex(R"(Feature\[(\d+)\] < (\d+\.?\d+))");
 	std::regex _leafNodePattern = std::regex(R"(ClassId=(\d+))");
@@ -38,7 +38,7 @@ class DotTreeLoader : TreeLoader<T>{
   		ull id = std::stoull(input[1].str());
   		std::smatch match;
   		std::string contentStr = input[2].str();
-		Node<T>* node;
+		Node<T>* node = nullptr;
   		if (std::regex_match(contentStr, match, _splitNodePattern)) {
   			int splitAttribute = std::stoi(match[1].str());
   			T splitValue = TypeConverter::convert<T>(match[2].str());
@@ -78,13 +78,14 @@ class DotTreeLoader : TreeLoader<T>{
   		node->right = std::unique_ptr<Node<T>>(right);
     }
 
-
 	public:
-        std::unique_ptr<Node<T>> loadTree(std::string filepath) override {
+		DotTreeLoader(): TreeLoader<T>(){}
+
+        std::unique_ptr<Node<T>> loadTree(const std::string& filepath) override {
 	        std::ifstream file(filepath);
-        	std::string input;
-        	try {
-        		int lineCount = 0;
+	        try {
+		        std::string input;
+		        int lineCount = 0;
         		while(std::getline(file, input)) {
         			lineCount++;
 					if (input.empty()) {

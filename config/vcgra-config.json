@@ -1,18 +1,26 @@
 {
-  "N": 0,
-  "M": 0,
+  "N": 3,
+  "M": 3,
   "nodes": {
     "entryNode": {
-      "xPos": 0,
-      "yPos": 0
-    },
-    "1": {
-      "xPos": 0,
-      "yPos": 0
+      "xPos": 1,
+      "yPos": 1
     },
     "2": {
+      "xPos": 1,
+      "yPos": 0
+    },
+    "3": {
       "xPos": 0,
       "yPos": 0
+    },
+    "4": {
+      "xPos": 2,
+      "yPos": 0
+    },
+    "5": {
+      "xPos": 1,
+      "yPos": 2
     }
   }
 }

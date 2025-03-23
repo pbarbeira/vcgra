@@ -50,7 +50,7 @@ struct LeafNode final : Node<T> {
     explicit LeafNode(const ull id, const int classId):
         Node<T>(id), classId(classId){};
 
-    [[nodiscard]] std::pair<int, int> getData() const override {
+    [[nodiscard]] std::pair<int, T> getData() const override {
         return std::make_pair(LEAF_ATTRIBUTE, classId);
     }
 };

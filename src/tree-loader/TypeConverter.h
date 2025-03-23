@@ -16,17 +16,17 @@ public:
 };
 
 template<>
-int TypeConverter::convert<int>(const std::string& value) {
+inline int TypeConverter::convert<int>(const std::string& value) {
     return std::stoi(value);
 }
 
 template<>
-double TypeConverter::convert<double>(const std::string& value) {
+inline double TypeConverter::convert<double>(const std::string& value) {
     return std::stod(value);
 }
 
 template<>
-float TypeConverter::convert<float>(const std::string& value) {
+inline float TypeConverter::convert<float>(const std::string& value) {
     return std::stof(value);
 }
 

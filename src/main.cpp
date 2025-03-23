@@ -5,45 +5,35 @@
 #include "tree-loader/TreeLoader.h"
 #include "vcgra/ProcessingUnit.h"
 #include "json-parse/JsonParser.h"
-#include "vcgra/MappingConfig.h"
+#include "vcgra/VCGRA.h"
+#include "vcgra/VCGRAConfig.h"
+
+#define VCGRA_CONFIG ""
+#define CYCLE_CONFIG ""
+#define TREE_CONFIG ""
 
 int main() {
 
-    // auto loader = DotTreeLoader<int>();
-    // auto root = loader.loadTree("/home/pbarbeira/masters/dissertation/vcgra/trees/tree.dot");
-    //
-    // if (root == nullptr) {
-    //     std::cerr << "Failed to load tree" << std::endl;
-    //     return 1;
-    // }
-    //
-    // auto cycleCounter = std::make_shared<CycleCounter>();
-    //
-    // auto pe = ProcessingUnit<int>(cycleCounter);
-    // pe.activate(std::move(root));
-    //
-    // std::vector<int> v1 = { 1, 2, 3, 4 };
-    // std::vector<int> v2 = { 1, 3, 3, 4 };
-    // std::vector<int> v3 = { 5, 2, 3, 4 };
-    //
-    // auto inst1 = Instance(v1);
-    // auto inst2 = Instance(v2);
-    // auto inst3 = Instance(v3);
-    //
-    // auto r1 = pe.classify(inst1);
-    // auto c1 = cycleCounter->getCycles();
-    // cycleCounter->reset();
-    // auto r2 = pe.classify(inst2);
-    // auto c2 = cycleCounter->getCycles();
-    // cycleCounter->reset();
-    // auto r3 = pe.classify(inst3);
-    // auto c3 = cycleCounter->getCycles();
-    // cycleCounter->reset();
-    //
-    // std::cout << "V1: " << r1 << "\tCycles: " << c1
-    //         << "\nV2: " << r2 << "\tCycles: " << c2
-    //         << "\nV3: " << r3 << "\tCycles: " << c3
-    //         << std::endl;
+    auto vcgraConfig = VCGRAConfig::loadFromFile(VCGRA_CONFIG);
+    std::unique_ptr<TreeLoader<int>> loader = std::make_unique<DotTreeLoader<int>>();
+    auto cycleCounter = std::make_shared<CycleCounter>();
+
+    auto vcgra = VCGRA(std::move(vcgraConfig), std::move(loader), std::move(cycleCounter));
+
+    vcgra.loadHoeffdingTree(TREE_CONFIG);
+
+    std::vector v1 = { 1, 2, 3, 4 };
+    std::vector v2 = { 1, 3, 3, 4 };
+    std::vector v3 = { 5, 2, 3, 4 };
+
+    auto inst1 = Instance(v1);
+    auto inst2 = Instance(v2);
+    auto inst3 = Instance(v3);
+
+    std::cout << "Instace 1 - Class: " << vcgra.classify(inst1) << '\n'
+            << "Instace 2 - Class: " << vcgra.classify(inst2) << '\n'
+            << "Instace 3 - Class: " << vcgra.classify(inst3) << '\n'
+            << std::endl;
 
     return 0;
 }
