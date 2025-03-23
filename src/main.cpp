@@ -8,7 +8,7 @@
 #include "vcgra/MappingConfig.h"
 
 int main() {
-    auto parsed = MappingConfig::loadFromFile("/home/pbarbeira/masters/dissertation/vcgra/node-mapping.json");
+    auto parsed = MappingConfig::loadFromFile("/home/pbarbeira/masters/dissertation/vcgra/config/node-mapping.json");
 
     std::cout << "here\n";
 
