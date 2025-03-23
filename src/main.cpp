@@ -8,15 +8,15 @@
 #include "vcgra/VCGRA.h"
 #include "vcgra/VCGRAConfig.h"
 
-#define VCGRA_CONFIG ""
-#define CYCLE_CONFIG ""
-#define TREE_CONFIG ""
+#define VCGRA_CONFIG "/home/pbarbeira/masters/dissertation/vcgra/config/vcgra-config.json"
+#define CYCLE_CONFIG "/home/pbarbeira/masters/dissertation/vcgra/config/cycle-config.json"
+#define TREE_CONFIG "/home/pbarbeira/masters/dissertation/vcgra/trees/tree.dot"
 
 int main() {
 
     auto vcgraConfig = VCGRAConfig::loadFromFile(VCGRA_CONFIG);
     std::unique_ptr<TreeLoader<int>> loader = std::make_unique<DotTreeLoader<int>>();
-    auto cycleCounter = std::make_shared<CycleCounter>();
+    auto cycleCounter = std::make_shared<CycleCounter>(CYCLE_CONFIG);
 
     auto vcgra = VCGRA(std::move(vcgraConfig), std::move(loader), std::move(cycleCounter));
 
